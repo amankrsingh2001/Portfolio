@@ -1,6 +1,7 @@
 import { Mulish } from "next/font/google";
 import { Crimson_Text } from "next/font/google";
 import { Cormorant } from "next/font/google";
+import { Outfit } from "next/font/google";
 
 export const MulsihFont = Mulish({
     weight:['500'],
@@ -18,4 +19,10 @@ export const CormorantFont = Cormorant({
     weight:['300'],
     subsets:['latin'],
     variable:'--font-cormorant'
+})
+
+export const OutfitFont = Outfit({
+    weight:['300'],
+    subsets:[ "latin-ext"],
+    variable:'--font-outfit'
 })

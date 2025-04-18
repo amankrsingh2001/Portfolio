@@ -31,9 +31,9 @@ export default function Landing (){
 
 
     
-    return <div className="w-full h-full border-2 border-white">
+    return <div className="w-full h-full">
         {
-            commandModal && <CommandModal/>
+            !commandModal && <CommandModal/>
         }
     </div>
 }
