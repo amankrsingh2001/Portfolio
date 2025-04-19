@@ -1,7 +1,8 @@
 "use client";
 
 import { ModalData } from "@/utils/CmdModal";
-import { Search } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Scale, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { FiLinkedin } from "react-icons/fi";
 import { useEffect, useState } from "react";
@@ -22,7 +23,6 @@ export default function CommandModal() {
 
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => {
-      e.preventDefault();
       switch (e.key) {
         case "ArrowDown":
           if (commandData[outerRoute]?.items) {
@@ -55,7 +55,7 @@ export default function CommandModal() {
           break;
 
         case "Enter":
-          router.push(commandData[innerRoute].link);
+          router.push(commandData[outerRoute].items[innerRoute].link);
           break;
         default:
           break;
@@ -64,7 +64,7 @@ export default function CommandModal() {
 
     window.addEventListener("keydown", keyHandler);
     return () => removeEventListener("keydown", keyHandler);
-  });
+  },[outerRoute, innerRoute, commandData, router]);
 
   useEffect(() => {
     const activeElement = document.getElementById(
@@ -78,6 +78,8 @@ export default function CommandModal() {
     }
   }, [innerRoute]);
 
+
+
   const InputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toLowerCase();
     setInputValue(val);
@@ -85,18 +87,45 @@ export default function CommandModal() {
     if (val === "") {
       setCommandData(ModalData);
     } else {
-      const cmdFilterData = commandData.filter((data: ModalData) => {
-        return data.title.toLowerCase().includes(val);
-      });
+
+      const cmdFilterData = commandData.map((val)=>{
+          return {
+            header:val.header,
+            items: val.items.filter((el)=>{
+              return el.title.toLowerCase().includes(inputValue.toLowerCase())
+            })
+          }}).filter((obj)=>{
+            return obj.items.length>0 && obj
+          })
+          
+      console.log(cmdFilterData)
       setCommandData(cmdFilterData);
     }
   };
 
+  
+
+  const childVariant = {
+    hidden:{
+      opacity:0,
+      scale:0,
+    },
+    visible:{
+      opacity:1,
+      scale:1,
+      transition:{
+        duration:0.9,
+        type:"spring"
+      }
+    }
+  }
+
   return (
-    <div className="inset-0 fixed z-[1000] place-items-center overflow-auto  bg-black h-screen text-white  backdrop-blur-md">
+    <AnimatePresence >
+      <motion.div  className="inset-0 fixed z-[1000] place-items-center overflow-auto  bg-black h-screen text-white  backdrop-blur-md">
       <div className="w-full relative h-full flex justify-center items-center">
-        <div className=" absolute top-28 flex flex-col w-[80%] md:w-[48%] lg:w-[32%] overflow-y-auto h-[400px]  bg-[#191919] border-[1px] border-[#262626] rounded-2xl  overflow-hidden">
-          <div className="flex w-full justify-around h-[70px] px-4 border-b border-[#262626]  space-x-3">
+        <motion.div variants={childVariant}  initial="hidden" animate="visible" className=" absolute top-42 flex flex-col w-[80%] md:w-[48%] lg:w-[32%] overflow-y-auto h-[400px]  bg-[#191919] border-[1px] border-[#262626] rounded-2xl  overflow-hidden">
+          <div className="flex w-full justify-around h-[70px] px-4 border-b border-[#262626]  space-x-3 ">
             <Search className="my-auto text-[#A3A3A3]" />
             <input
               value={inputValue}
@@ -107,27 +136,25 @@ export default function CommandModal() {
           </div>
 
           <div className="mt-2 px-2 overflow-scroll h-[350px]">
-            <div className="w-full py-1">
+            <div className="w-full py-1 ">
               {commandData.map((data, idx) => {
                 return (
-                  <div key={idx}>
+                  <div key={idx} className="space-y-1.5">
                     <p className="text-sm capitalize tracking-wide text-[#A3A3A3] ml-1 font-mulish">
-                      {data.title}
+                      {data.header}
                     </p>
                     {data.items.map((el: ModalData, index: number) => {
                       const Logo = el.logo;
                       return (
                         <div
                           tabIndex={0}
-                          onKeyDown={(e) => routeEnterHandler(e)}
                           id={`command-item-${index}-${idx}`}
                           key={index}
                           onMouseEnter={() => {
                             setouterRoute(idx);
                             setInnerRoute(index);
                           }}
-                          className={` flex group
-                                                      hover:bg-[#262626] transition-all duration-200 py-1 rounded-md  px-2 
+                          className={` flex group hover:bg-[#262626] transition-all duration-200 py-1.5 rounded-md  px-2 
                                                 ${
                                                   innerRoute === index &&
                                                   outerRoute === idx
@@ -155,6 +182,9 @@ export default function CommandModal() {
                         </div>
                       );
                     })}
+                  {
+                    idx != 3 &&  <div className="h-[1px] mt-2 mb-1 w-full bg-[#262626]"></div> 
+                  }
                   </div>
                 );
               })}
@@ -206,8 +236,10 @@ export default function CommandModal() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
+    </AnimatePresence>
+    
   );
 }

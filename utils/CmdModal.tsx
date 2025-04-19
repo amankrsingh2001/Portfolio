@@ -17,13 +17,13 @@ export interface ModalData {
 }
 
 export interface Main {
-  title: string;
+  header: string;
   items: ModalData[];
 }
 
 export const ModalData: Main[] = [
   {
-    title: "naviagtion",
+    header: "naviagtion",
     items: [
       {
         title: "Home",
@@ -64,7 +64,7 @@ export const ModalData: Main[] = [
     ],
   },
   {
-    title:"Account",
+    header:"Account",
     items:[
        { title:"Sign In",
         description:"",
@@ -72,7 +72,7 @@ export const ModalData: Main[] = [
         link:'/auth'}
     ]
   },{
-    title:"General",
+    header:"General",
     items:[
         {
             title:"Resume",
@@ -82,7 +82,7 @@ export const ModalData: Main[] = [
         }
     ]
   },{
-    title:"Social",
+    header:"Social",
     items:[
         {
             title:"Github",
