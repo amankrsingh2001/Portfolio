@@ -5,13 +5,13 @@
 
 :root {
   /* Your default theme */
-  --background: white;
-  --foreground: black;
+  --background: black;
+  --foreground: white;
 }
 
 [data-theme='dark'] {
-  --background: black;
-  --foreground: white;
+  --background: white;
+  --foreground: dark;
 }
 
 @theme inline {

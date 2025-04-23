@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CommandModal from "./modal/CommandModal";
+import { Command } from 'lucide-react';
 
 export default function Landing (){
 
@@ -31,7 +32,16 @@ export default function Landing (){
 
 
     
-    return <div className="w-full h-full bg-white">
+    return <div className="w-full h-full ">
+           <div className="w-[80%] mx-auto flex items-center  h-24 justify-between">
+                <img src={'file.svg'} width={50} height={50}/>
+                <div>
+                    <button onClick={()=>setCommandModal(true)} className="text-xs cursor-pointer px-2 py-2 flex space-x-2 ">
+                        <Command className="text-[#E0E0C7] inline-block self-center" size={"20px"}/> <span className="text-xl font-bold">&#43; K</span>
+                    </button>
+                </div>
+           </div>
+
         {
             commandModal && <CommandModal/>
         }

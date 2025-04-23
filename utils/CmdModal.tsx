@@ -1,3 +1,4 @@
+import {  GroupModalData, NavbarData } from "@/lib/interfaces";
 import {
   BookHeart,
   FolderGit2,
@@ -9,19 +10,9 @@ import {
 } from "lucide-react";
 import { ReactElement } from "react";
 
-export interface ModalData {
-  title: String;
-  description: String;
-  logo: React.FC;
-  link: string;
-}
 
-export interface Main {
-  header: string;
-  items: ModalData[];
-}
 
-export const ModalData: Main[] = [
+export const ModalData:GroupModalData[] = [
   {
     header: "naviagtion",
     items: [
@@ -103,3 +94,23 @@ export const ModalData: Main[] = [
     ]
   }
 ];
+
+
+export const navbarData:NavbarData[] =[
+  {
+    title:"home",
+    link:'/'
+  },{
+    title:"work",
+    link:'/projects'
+  },{
+    title:"about",
+    link:'/about'
+  },{
+    title:"blog",
+    link:'/blogs'
+  },{
+    title:"more",
+    link:'/more'
+  }
+]

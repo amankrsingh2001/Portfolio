@@ -26,3 +26,4 @@ export const OutfitFont = Outfit({
     subsets:[ "latin-ext"],
     variable:'--font-outfit'
 })
+
