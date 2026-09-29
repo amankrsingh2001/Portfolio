@@ -1,19 +1,18 @@
-import { portfolio } from "../data/portfolio";
+import { SkillTree } from "./skill-tree";
 
 export function Skills() {
   return (
-    <section className="section" id="skills" aria-labelledby="skills-heading">
+    <section
+      className="section skills-section"
+      id="skills"
+      aria-labelledby="skills-heading"
+    >
       <h2 id="skills-heading" className="section-title">
-        Skills
+        Skill tree
       </h2>
-      <dl className="section-content skills">
-        {portfolio.skills.map((group) => (
-          <div key={group.label}>
-            <dt>{group.label}</dt>
-            <dd>{group.items.join(", ")}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="section-content">
+        <SkillTree />
+      </div>
     </section>
   );
 }

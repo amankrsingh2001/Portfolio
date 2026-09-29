@@ -28,6 +28,10 @@ html[data-theme="light"] {
   --illo-skin: #d8a079;
   --illo-chair: #3b3935;
   --illo-mug: #f2efe8;
+  --illo-angry: #e5484d;
+  --tube: #fffaf0;
+  --tube-glow: rgb(255 190 110 / 0.55);
+  --beam: rgb(255 184 96 / 0.2);
 }
 
 html[data-theme="dark"] {
@@ -53,6 +57,10 @@ html[data-theme="dark"] {
   --illo-skin: #d8a079;
   --illo-chair: #2e2d2a;
   --illo-mug: #d8d4cb;
+  --illo-angry: #ff6369;
+  --tube: #fff7e6;
+  --tube-glow: rgb(255 214 150 / 0.7);
+  --beam: rgb(255 214 150 / 0.13);
 }
 
 /* Without JavaScript, follow the system setting. */
@@ -80,6 +88,10 @@ html[data-theme="dark"] {
     --illo-skin: #d8a079;
     --illo-chair: #2e2d2a;
     --illo-mug: #d8d4cb;
+    --illo-angry: #ff6369;
+    --tube: #fff7e6;
+    --tube-glow: rgb(255 214 150 / 0.7);
+    --beam: rgb(255 214 150 / 0.13);
   }
 }
 
@@ -106,6 +118,7 @@ html {
 }
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
@@ -264,6 +277,7 @@ ol {
 
 /* Hero */
 .hero {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   align-items: center;
@@ -675,15 +689,21 @@ ol {
   fill: var(--accent);
   animation: blink 1s steps(1) infinite;
 }
+/* Idle: barely-there breathing, a slow head drift, uneven little keystrokes. */
+.illo-person {
+  transform-box: view-box;
+  transform-origin: 133px 312px;
+  animation: breathe 4.2s ease-in-out infinite;
+}
 .illo-arm {
   transform-box: view-box;
   transform-origin: 168px 236px;
-  animation: typing 0.32s ease-in-out infinite alternate;
+  animation: typing 1.7s ease-in-out infinite;
 }
 .illo-head {
   transform-box: view-box;
-  transform-origin: 133px 215px;
-  animation: nod 3.2s ease-in-out infinite;
+  transform-origin: 133px 206px;
+  animation: drift 6.5s ease-in-out infinite;
 }
 .illo-float {
   font-family: var(--mono);
@@ -733,18 +753,53 @@ ol {
     opacity: 0;
   }
 }
-@keyframes typing {
-  to {
-    rotate: -3deg;
+@keyframes breathe {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+  45% {
+    scale: 1 1.008;
   }
 }
-@keyframes nod {
+@keyframes typing {
   0%,
+  14%,
+  30%,
+  38%,
+  62%,
   100% {
     rotate: 0deg;
   }
+  8% {
+    rotate: -1.2deg;
+  }
+  22% {
+    rotate: -0.6deg;
+  }
+  34% {
+    rotate: -1deg;
+  }
   50% {
-    rotate: 2deg;
+    rotate: -0.4deg;
+  }
+  56% {
+    rotate: -1.3deg;
+  }
+}
+@keyframes drift {
+  0%,
+  100% {
+    rotate: 0deg;
+    translate: 0 0;
+  }
+  35% {
+    rotate: 0.8deg;
+    translate: 0.5px 0;
+  }
+  70% {
+    rotate: -0.5deg;
+    translate: 0 0.5px;
   }
 }
 @keyframes steam {
@@ -763,6 +818,794 @@ ol {
 @keyframes glow {
   50% {
     opacity: 0.28;
+  }
+}
+
+/* Tube light */
+.hero > :not(.hero-light) {
+  position: relative;
+  z-index: 1;
+}
+/* Full-bleed and clipped, so the widest beam never causes sideways scroll. */
+.hero-light {
+  position: absolute;
+  top: 0;
+  bottom: -80px;
+  left: 50%;
+  width: 100vw;
+  translate: -50% 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-light-inner {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 40px;
+}
+.lamp {
+  grid-column: 2;
+  position: relative;
+  justify-self: center;
+  width: 190px;
+  --drop: 76px;
+}
+.lamp-drop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--drop) + 14px);
+  transform-origin: 50% 0;
+  animation:
+    lamp-drop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both,
+    lamp-swing 2.4s ease-in-out 1.2s both;
+}
+.cord {
+  position: absolute;
+  top: 0;
+  width: 1.5px;
+  height: var(--drop);
+  background: var(--line-strong);
+}
+.cord-left {
+  left: 22%;
+}
+.cord-right {
+  right: 22%;
+}
+.fixture {
+  position: absolute;
+  top: var(--drop);
+  left: 0;
+  right: 0;
+  height: 14px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: var(--illo-bezel);
+  box-shadow: var(--shadow);
+}
+.tube {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--line-strong);
+  animation: tube-on 1.3s linear 1.3s both;
+}
+.beam {
+  position: absolute;
+  top: calc(var(--drop) + 12px);
+  left: 50%;
+  translate: -50% 0;
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    180deg,
+    var(--beam) 0%,
+    color-mix(in oklab, var(--beam) 55%, transparent) 40%,
+    color-mix(in oklab, var(--beam) 18%, transparent) 70%,
+    transparent 92%
+  );
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  filter: blur(14px);
+  opacity: 0;
+  animation: cascade 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.beam-1 {
+  width: 320px;
+  height: 300px;
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+  animation-delay: 2.5s;
+}
+.beam-2 {
+  width: 560px;
+  height: 460px;
+  animation-delay: 2.8s;
+  --beam-max: 0.8;
+}
+.beam-3 {
+  width: 820px;
+  height: 640px;
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  animation-delay: 3.1s;
+  --beam-max: 0.55;
+}
+@keyframes lamp-drop {
+  from {
+    translate: 0 calc(-1 * var(--drop) - 40px);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes lamp-swing {
+  0% {
+    rotate: 0deg;
+  }
+  20% {
+    rotate: 3deg;
+  }
+  45% {
+    rotate: -2deg;
+  }
+  70% {
+    rotate: 1deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
+}
+/* A fluorescent tube stutters a few times before it stays on. */
+@keyframes tube-on {
+  0%,
+  8%,
+  22%,
+  30%,
+  52% {
+    background: var(--line-strong);
+    box-shadow: none;
+  }
+  5%,
+  15%,
+  26%,
+  40%,
+  60%,
+  100% {
+    background: var(--tube);
+    box-shadow:
+      0 0 10px 2px var(--tube-glow),
+      0 6px 30px 6px var(--tube-glow);
+  }
+}
+@keyframes cascade {
+  from {
+    opacity: 0;
+    scale: 1 0.2;
+  }
+  to {
+    opacity: var(--beam-max, 1);
+    scale: 1 1;
+  }
+}
+
+/* Easter egg: disturbed developer. One shared timeline (--play); each part
+   runs its own keyframes on it, so nothing moves in lockstep.
+   Timeline (ms): notice 0–200 · turn 200–650 · pause 650–800 ·
+   grab & lift 800–1160 · swing & release 1160–1300 · flight 1300–1850 ·
+   peace & shrug 1400–2100 · return 2100–2800. Percent = ms / 29. */
+.hero-art {
+  --play: 2900ms;
+}
+.art-hint {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.illo-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.illo-face,
+.face-content,
+.illo-strings,
+.kbd-held,
+.kbd-arc,
+.kbd-shadow,
+.kbd-dust {
+  opacity: 0;
+}
+.illo-feature {
+  fill: none;
+  stroke: var(--illo-hair);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.illo-feature.thin {
+  stroke-width: 1.6;
+  stroke: color-mix(in oklab, var(--illo-skin) 60%, var(--illo-hair));
+}
+.illo-eye {
+  fill: var(--illo-hair);
+}
+.illo-hood,
+.illo-strings {
+  fill: none;
+  stroke-linecap: round;
+}
+.illo-hood {
+  stroke: color-mix(in oklab, var(--illo-hoodie) 70%, black);
+  stroke-width: 3;
+}
+.illo-strings {
+  stroke: var(--illo-mug);
+  stroke-width: 2;
+}
+.illo-torso {
+  transform-box: view-box;
+  transform-origin: 133px 312px;
+}
+.illo-chair-set {
+  transform-box: view-box;
+  transform-origin: 133px 354px;
+}
+.kbd-held,
+.kbd-fly {
+  fill: var(--illo-bezel);
+}
+.kbd-held {
+  transform-box: view-box;
+  transform-origin: 200px 294px;
+}
+.kbd-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  rotate: -165deg;
+}
+.kbd-shadow {
+  fill: var(--ink);
+}
+.kbd-dust {
+  fill: var(--ink-3);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.hero-art[data-state="playing"] .illo-person {
+  animation: none;
+}
+.hero-art[data-state="playing"] .illo-torso {
+  animation: torso var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-chair-set {
+  animation: chair var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-head {
+  animation: head var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-arm {
+  animation: arm var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-back {
+  animation: show-back var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-face {
+  animation: show-face var(--play) both;
+}
+.hero-art[data-state="playing"] .face-deadpan {
+  animation: show-deadpan var(--play) both;
+}
+.hero-art[data-state="playing"] .face-content {
+  animation: show-content var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-hood {
+  animation: show-hood var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-strings {
+  animation: show-strings var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-keyboard {
+  animation: desk-keyboard var(--play) both;
+}
+.hero-art[data-state="playing"] .kbd-held {
+  animation: held-keyboard var(--play) both;
+}
+.hero-art[data-state="playing"] .kbd-arc {
+  animation: kbd-arc var(--play) both;
+}
+.hero-art[data-state="playing"] .kbd-spin {
+  animation: kbd-spin var(--play) both;
+}
+.hero-art[data-state="playing"] .kbd-shadow {
+  animation: kbd-shadow var(--play) both;
+}
+.hero-art[data-state="playing"] .kbd-dust {
+  animation: kbd-dust var(--play) both;
+}
+.hero-art[data-state="playing"] .illo-code {
+  animation: code-pause var(--play) both;
+}
+
+/* Reduced motion: a still glance back, nothing moves. */
+.hero-art[data-state="glance"] .illo-back,
+.hero-art[data-state="glance"] .illo-hood {
+  opacity: 0;
+}
+.hero-art[data-state="glance"] .illo-face,
+.hero-art[data-state="glance"] .illo-strings {
+  opacity: 1;
+}
+
+/* Torso leads the turn, takes the keyboard's weight, then shrugs. */
+@keyframes torso {
+  0% {
+    scale: 1 1;
+    translate: 0 0;
+    rotate: 0deg;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+  6.9% {
+    scale: 1 1.014;
+    translate: 0 -2px;
+    animation-timing-function: ease-in-out;
+  }
+  9% {
+    scale: 1 1.006;
+    translate: 0 -1px;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  14.5% {
+    scale: 0.86 1.004;
+    translate: -4px -1px;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  20.7%,
+  27.6% {
+    scale: 0.95 1;
+    translate: -3px 0;
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  31% {
+    scale: 0.95 1;
+    translate: -2px 1px;
+    rotate: 1.5deg;
+    animation-timing-function: ease-in-out;
+  }
+  40% {
+    scale: 0.95 0.99;
+    translate: -2px 3px;
+    rotate: 3deg;
+    animation-timing-function: ease-in;
+  }
+  44.8% {
+    scale: 0.95 1.01;
+    translate: -4px -3px;
+    rotate: -5deg;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  50% {
+    scale: 0.95 1;
+    translate: -3px 0;
+    rotate: 0.5deg;
+    animation-timing-function: ease-in-out;
+  }
+  56% {
+    scale: 0.95 1.03;
+    translate: -3px -3px;
+    rotate: -1deg;
+    animation-timing-function: ease-in-out;
+  }
+  61%,
+  72.4% {
+    scale: 0.95 1;
+    translate: -3px 0;
+    rotate: -1.5deg;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  79% {
+    scale: 0.86 1;
+    translate: -4px 0;
+    rotate: 0deg;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  88%,
+  100% {
+    scale: 1 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+/* The chair swivels a beat after the body, with a small spring. */
+@keyframes chair {
+  0%,
+  9% {
+    scale: 1 1;
+    translate: 0 0;
+    animation-timing-function: ease-in-out;
+  }
+  16.5% {
+    scale: 0.95 1;
+    translate: -3px 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.3);
+  }
+  23%,
+  74% {
+    scale: 0.975 1;
+    translate: -2px 0;
+    animation-timing-function: ease-in-out;
+  }
+  81% {
+    scale: 0.96 1;
+    translate: -2px 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.4);
+  }
+  89% {
+    scale: 1.008 1;
+    translate: 0.5px 0;
+  }
+  93%,
+  100% {
+    scale: 1 1;
+    translate: 0 0;
+  }
+}
+/* Head: lifts on notice, follows the torso ~80ms late, watches the toss,
+   tips back to enjoy the quiet, and turns back last. */
+@keyframes head {
+  0% {
+    rotate: 0deg;
+    scale: 1 1;
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  }
+  6.9% {
+    rotate: -3deg;
+    translate: 0 -3px;
+    animation-timing-function: ease-out;
+  }
+  9.7% {
+    rotate: -2deg;
+    scale: 1 1;
+    translate: 0 -2px;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  15.5% {
+    rotate: -1deg;
+    scale: 0.84 1;
+    translate: -4px -1px;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.25);
+  }
+  22.4%,
+  27.6% {
+    rotate: 0deg;
+    scale: 1 1;
+    translate: -2px 0;
+    animation-timing-function: ease-in-out;
+  }
+  38% {
+    rotate: 2deg;
+    translate: -2px 1px;
+    animation-timing-function: ease-in;
+  }
+  45.5% {
+    rotate: -4deg;
+    translate: -3px -2px;
+    animation-timing-function: ease-out;
+  }
+  51.7% {
+    rotate: -2deg;
+    translate: -2px -1px;
+    animation-timing-function: ease-in-out;
+  }
+  57% {
+    rotate: -5deg;
+    translate: -2px -3px;
+    animation-timing-function: ease-in-out;
+  }
+  74.1% {
+    rotate: -4deg;
+    scale: 1 1;
+    translate: -2px -1px;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  80.5% {
+    rotate: 0deg;
+    scale: 0.84 1;
+    translate: -3px 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  88%,
+  100% {
+    rotate: 0deg;
+    scale: 1 1;
+    translate: 0 0;
+  }
+}
+/* Arm moves before the keyboard: lift off keys, settle on it, heave it up
+   (dipping under its weight), swing over the head, follow through, relax. */
+@keyframes arm {
+  0% {
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  6.9%,
+  27.6% {
+    rotate: -4deg;
+    animation-timing-function: ease-in-out;
+  }
+  31% {
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  36.2% {
+    rotate: -7deg;
+    animation-timing-function: cubic-bezier(0.3, 1.6, 0.6, 1);
+  }
+  40% {
+    rotate: 9deg;
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.4);
+  }
+  44.8% {
+    rotate: -165deg;
+    animation-timing-function: cubic-bezier(0.1, 0.6, 0.3, 1);
+  }
+  48.3% {
+    rotate: -188deg;
+    animation-timing-function: ease-in-out;
+  }
+  56% {
+    rotate: -40deg;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  60.3% {
+    rotate: 24deg;
+    animation-timing-function: ease-in-out;
+  }
+  63.8% {
+    rotate: 18deg;
+    animation-timing-function: ease-in-out;
+  }
+  79.3% {
+    rotate: 22deg;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  94.8%,
+  100% {
+    rotate: 0deg;
+  }
+}
+/* Held keyboard trails the hand slightly, then leaves it at release. */
+@keyframes held-keyboard {
+  0%,
+  30.9% {
+    opacity: 0;
+    rotate: 0deg;
+  }
+  31% {
+    opacity: 1;
+    rotate: 0deg;
+    animation-timing-function: ease-out;
+  }
+  36.2% {
+    rotate: 3deg;
+    animation-timing-function: ease-in-out;
+  }
+  40% {
+    rotate: -2deg;
+    animation-timing-function: ease-in;
+  }
+  44.7% {
+    opacity: 1;
+    rotate: 0deg;
+  }
+  44.8%,
+  100% {
+    opacity: 0;
+    rotate: 0deg;
+  }
+}
+@keyframes desk-keyboard {
+  0%,
+  30.9% {
+    opacity: 1;
+  }
+  31%,
+  86.2% {
+    opacity: 0;
+  }
+  96.6%,
+  100% {
+    opacity: 1;
+  }
+}
+/* Flight: rises and slows, falls and speeds up, lands, two small bounces. */
+@keyframes kbd-arc {
+  0%,
+  44.7% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  44.8% {
+    opacity: 1;
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.25, 0.6, 0.4, 1);
+  }
+  49.5% {
+    translate: -38px -26px;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.5);
+  }
+  58.6% {
+    translate: -85px 239px;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  61% {
+    translate: -89px 230px;
+    animation-timing-function: ease-in;
+  }
+  63.2% {
+    translate: -92px 239px;
+    animation-timing-function: ease-out;
+  }
+  64.4% {
+    translate: -93px 236.5px;
+    animation-timing-function: ease-in;
+  }
+  65.5%,
+  82.8% {
+    opacity: 1;
+    translate: -94px 239px;
+  }
+  93.1%,
+  100% {
+    opacity: 0;
+    translate: -94px 239px;
+  }
+}
+@keyframes kbd-spin {
+  0%,
+  44.8% {
+    rotate: -165deg;
+    animation-timing-function: cubic-bezier(0.3, 0.1, 0.6, 1);
+  }
+  58.6% {
+    rotate: -360deg;
+    animation-timing-function: ease-out;
+  }
+  61% {
+    rotate: -366deg;
+    animation-timing-function: ease-in-out;
+  }
+  63.2% {
+    rotate: -358deg;
+    animation-timing-function: ease-out;
+  }
+  65.5%,
+  100% {
+    rotate: -360deg;
+  }
+}
+@keyframes kbd-shadow {
+  0%,
+  53% {
+    opacity: 0;
+    scale: 0.5 1;
+  }
+  58.6%,
+  82.8% {
+    opacity: 0.18;
+    scale: 1 1;
+  }
+  93.1%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes kbd-dust {
+  0%,
+  58.5% {
+    opacity: 0;
+    scale: 0.4;
+    translate: 0 0;
+  }
+  59% {
+    opacity: 0.5;
+    animation-timing-function: ease-out;
+  }
+  66% {
+    opacity: 0;
+    scale: 2.2;
+    translate: 0 -6px;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show-back {
+  0%,
+  15.4% {
+    opacity: 1;
+  }
+  15.5%,
+  80.4% {
+    opacity: 0;
+  }
+  80.5%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes show-face {
+  0%,
+  15.4% {
+    opacity: 0;
+  }
+  15.5%,
+  80.4% {
+    opacity: 1;
+  }
+  80.5%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show-deadpan {
+  0%,
+  47% {
+    opacity: 1;
+  }
+  49.5%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes show-content {
+  0%,
+  47% {
+    opacity: 0;
+  }
+  49.5%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes show-hood {
+  0%,
+  14.4% {
+    opacity: 1;
+  }
+  14.5%,
+  78.9% {
+    opacity: 0;
+  }
+  79%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes show-strings {
+  0%,
+  14.4% {
+    opacity: 0;
+  }
+  14.5%,
+  78.9% {
+    opacity: 1;
+  }
+  79%,
+  100% {
+    opacity: 0;
+  }
+}
+/* The code on screen stops while he isn't typing. */
+@keyframes code-pause {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  10%,
+  90% {
+    opacity: 0.55;
   }
 }
 
@@ -1012,27 +1855,605 @@ ol {
   margin-right: 6px;
 }
 
-/* Skills */
-.skills {
-  display: grid;
-  gap: 14px;
+/* Skills: interactive skill tree. Layout adapts to the tree's own width. */
+.skills-section {
+  grid-template-columns: minmax(0, 1fr);
 }
-.skills > div {
-  display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  gap: 24px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
+.skills-section .section-title {
+  position: static;
 }
-.skills > div:last-child {
-  border-bottom: 0;
+.tree-head {
+  margin-bottom: 32px;
 }
-.skills dt {
+.tree-subtitle {
+  max-width: 32ch;
+  margin-top: 6px;
+  font-size: clamp(1.3rem, 2.6vw, 1.65rem);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.tree-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 28px;
+  margin-top: 16px;
+  font-size: 13px;
   color: var(--ink-3);
-  font-size: 15px;
 }
-.skills dd {
+.leveling {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+.leveling .dot {
+  width: 7px;
+  height: 7px;
+  animation: soft-pulse 2.4s ease-in-out infinite;
+}
+.tree-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+.tree-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skill-tree {
+  position: relative;
+  container-type: inline-size;
+  padding: 8px 0 24px;
+}
+.skill-tree::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -40px;
+  width: min(560px, 90%);
+  height: 260px;
+  translate: -50% 0;
+  background: radial-gradient(closest-side, var(--accent-soft), transparent);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.tree-links {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.tree-core,
+.tree-categories {
+  position: relative;
+}
+.tree-core {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.tree-categories {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  padding-left: 38px;
+}
+.tree-category {
+  min-width: 0;
+}
+.tree-branch {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 8px;
+  padding-left: 26px;
+}
+.tree-branch > li {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@container (min-width: 600px) {
+  .tree-core {
+    margin-bottom: 52px;
+  }
+  .tree-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 72px;
+    row-gap: 48px;
+    padding-left: 0;
+  }
+}
+@container (min-width: 960px) {
+  .tree-core {
+    margin-bottom: 64px;
+  }
+  .tree-branch {
+    padding-left: 15px;
+  }
+  .tree-branch .tree-node {
+    padding: 5px 8px;
+    font-size: 12.5px;
+  }
+  .tree-categories {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 14px;
+  }
+}
+@container (max-width: 599.98px) {
+  .tree-core {
+    justify-content: flex-start;
+  }
+  .node-core {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* Nodes */
+.tree-node {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    scale 0.25s cubic-bezier(0.3, 1.5, 0.6, 1),
+    border-color 0.2s,
+    box-shadow 0.25s,
+    opacity 0.25s,
+    color 0.2s,
+    background 0.2s;
+}
+.tree-node:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.node-core {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 22px 12px;
+  border-radius: 14px;
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--line));
+  background:
+    linear-gradient(160deg, var(--accent-soft), transparent 70%),
+    var(--bg-elevated);
   color: var(--ink);
+  text-align: center;
+  box-shadow: 0 0 40px -8px var(--accent-soft);
+}
+.node-core .node-name {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.node-sub {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.core-mark {
+  width: 8px;
+  height: 8px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 14px var(--accent);
+  animation: soft-pulse 2.8s ease-in-out infinite;
+}
+.node-category {
+  padding: 7px 12px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  border-color: var(--line-strong);
+}
+.node-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.node-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.level-exploring .node-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+.level-proficient .node-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.level-advanced .node-dot {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+.tree-node.level-proficient {
+  color: var(--ink);
+}
+.tree-node.level-advanced {
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--accent) 38%, var(--line));
+  background:
+    linear-gradient(135deg, var(--accent-soft), transparent 80%),
+    var(--bg-elevated);
+}
+.tree-node.level-advanced .node-dot {
+  animation: soft-pulse 3s ease-in-out infinite;
+}
+.node-up {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: soft-pulse 2.4s ease-in-out infinite;
+}
+
+/* Hover, focus and selection: the skill, its parent and its children light up. */
+.tree-node.is-related {
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--line));
+  color: var(--ink);
+}
+.tree-node.is-focus,
+.tree-node.is-selected {
+  scale: 1.05;
+  border-color: var(--accent);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--accent-soft),
+    0 6px 22px -8px var(--accent);
+}
+.tree-node.is-dim {
+  opacity: 0.4;
+}
+.node-core.is-focus,
+.node-core.is-selected {
+  scale: 1.03;
+}
+
+/* Connections */
+.link-base,
+.link-glow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.link-base {
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+  transition: stroke 0.25s;
+}
+.is-trunk .link-base {
+  stroke-width: 1.75;
+}
+.tree-link {
+  transition: opacity 0.25s;
+}
+.tree-link.is-dim {
+  opacity: 0.35;
+}
+.tree-link.is-lit .link-base {
+  stroke: var(--accent);
+}
+.link-glow {
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-dasharray: 0.1 1;
+  stroke-dashoffset: 0.1;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+.tree-link.is-lit .link-glow {
+  opacity: 1;
+  animation: travel 1.2s ease-in-out infinite;
+}
+.skill-tree.is-powered .is-trunk:not(.is-dim):not(.is-lit) .link-glow {
+  opacity: 0.4;
+  animation: travel-idle 7s ease-in-out infinite;
+  animation-delay: calc(var(--d) * 4 + 1.6s);
+}
+
+/* Hover card */
+.tree-tip {
+  position: absolute;
+  z-index: 5;
+  width: 224px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  animation: tip-in 0.2s var(--ease) both;
+}
+.tip-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.tip-desc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.tip-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+.tip-used {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.pips {
+  display: inline-flex;
+  gap: 2px;
+}
+.pips i {
+  width: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+.pips i.on {
+  background: var(--accent);
+}
+
+/* Detail panel */
+.tree-panel {
+  margin-top: 20px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  animation: panel-in 0.3s var(--ease) both;
+}
+@media (max-width: 640px) {
+  /* Bottom sheet, so tapping a skill never scrolls the tree away. */
+  .tree-panel {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 45;
+    max-height: 62vh;
+    overflow-y: auto;
+    margin: 0;
+    box-shadow: var(--shadow);
+    animation-name: sheet-in;
+  }
+}
+@keyframes sheet-in {
+  from {
+    translate: 0 24px;
+    opacity: 0;
+  }
+}
+.panel-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.panel-top h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.panel-top .muted {
+  font-size: 13px;
+}
+.panel-close {
+  padding: 3px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.panel-close:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.panel-desc {
+  margin-top: 10px;
+  color: var(--ink-2);
+}
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px 28px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+.panel-grid dt {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.panel-grid dd {
+  margin-top: 6px;
+  font-size: 14px;
+}
+.panel-level {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.panel-list {
+  display: grid;
+  gap: 4px;
+}
+.panel-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-related button {
+  padding: 2px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.panel-related button:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* Floating motes, barely visible */
+.tree-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tree-particles i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+}
+.skill-tree.is-powered .tree-particles i {
+  animation: mote var(--t) linear var(--delay) infinite;
+}
+
+/* Power on: core, then branches drawing outward, then nodes in sequence.
+   Only hidden when scripting runs, so the tree is never invisible without JS. */
+@media (scripting: enabled) {
+  .skill-tree:not(.is-powered) .tree-node {
+    opacity: 0;
+  }
+  .skill-tree:not(.is-powered) .link-base {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+}
+.skill-tree.is-powered .tree-node {
+  animation: node-in 0.45s var(--ease) var(--d) backwards;
+}
+.skill-tree.is-powered .node-core {
+  animation-name: core-in;
+  animation-duration: 0.5s;
+}
+.skill-tree.is-powered .link-base {
+  stroke-dasharray: 1;
+  animation: draw 0.5s var(--ease) var(--d) both;
+}
+
+@keyframes node-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+    scale: 0.96;
+  }
+}
+@keyframes core-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+    box-shadow: 0 0 0 0 transparent;
+  }
+  60% {
+    box-shadow: 0 0 60px 0 var(--accent-soft);
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes travel {
+  from {
+    stroke-dashoffset: 0.1;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+@keyframes travel-idle {
+  0% {
+    stroke-dashoffset: 0.1;
+  }
+  35%,
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@keyframes soft-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes mote {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    translate: 8px -48px;
+  }
 }
 
 /* Contact */
@@ -1142,6 +2563,13 @@ ol {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
+  .hero-light-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lamp {
+    grid-column: 1;
+    --drop: 34px;
+  }
   .hero-art {
     max-width: 460px;
     width: 100%;
@@ -1159,8 +2587,7 @@ ol {
     display: none;
   }
   .project,
-  .job,
-  .skills > div {
+  .job {
     grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
@@ -1186,6 +2613,8 @@ ol {
     scroll-behavior: auto;
   }
   .hero-art *,
+  .hero-light *,
+  .skill-tree *,
   .flow-edge,
   .flow-edge::before,
   .packet,
@@ -1198,6 +2627,15 @@ ol {
   }
   .illo-steam {
     opacity: 0.5;
+  }
+  .tube {
+    background: var(--tube);
+    box-shadow:
+      0 0 10px 2px var(--tube-glow),
+      0 6px 30px 6px var(--tube-glow);
+  }
+  .beam {
+    opacity: var(--beam-max, 1);
   }
   *,
   *::before,

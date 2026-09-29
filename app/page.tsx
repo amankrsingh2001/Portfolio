@@ -6,6 +6,7 @@ import { Skills } from "./components/skills";
 import { Architecture } from "./components/architecture";
 import { ThemeSwitch } from "./components/theme-switch";
 import { HeroArt } from "./components/hero-art";
+import { HeroLight } from "./components/hero-light";
 
 const nav = [
   { href: "#work", label: "Work" },
@@ -39,6 +40,7 @@ export default function Home() {
 
       <main id="main" className="container">
         <section className="hero" id="top" aria-labelledby="hero-heading">
+          <HeroLight />
           <div className="hero-copy">
           {current && (
             <p className="hero-status">
