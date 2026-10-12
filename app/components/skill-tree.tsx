@@ -17,6 +17,8 @@ import {
   type Level,
   type SkillNode,
 } from "../data/skill-tree";
+import { fractalLayout, RATIO } from "./fractal-layout";
+import { terminalEvents } from "../data/routes";
 
 type Entry = {
   node: SkillNode;
@@ -28,7 +30,15 @@ type Entry = {
 };
 
 type Rect = { left: number; top: number; width: number; height: number };
-type Link = { from: string; to: string; d: string; delay: number; trunk: boolean };
+type Link = {
+  from: string;
+  to: string;
+  d: string;
+  delay: number;
+  trunk: boolean;
+  /** Stroke width; branches thin out by the same ratio they shorten by. */
+  width?: number;
+};
 
 // Same breakpoints as the container queries in globals.css.
 const WIDE = 960;
@@ -103,11 +113,22 @@ export function SkillTree() {
   const [selected, setSelected] = useState<string | null>(null);
 
   const active = hovered ?? focused;
+  // Read on hover/focus, so the card follows the node in every layout.
+  const [tipRect, setTipRect] = useState<Rect | null>(null);
+  const noteTip = (el: HTMLElement) => {
+    const box = container.current?.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (box) setTipRect({ left: r.left - box.left, top: r.top - box.top, width: r.width, height: r.height });
+  };
 
   // Measure every node and draw curved links between parent and child.
   const measure = useCallback(() => {
     const root = container.current;
     if (!root) return;
+    const width = root.clientWidth;
+    if (width >= WIDE && measureFractal(root, width)) return;
+    clearFractal(root);
+
     const box = root.getBoundingClientRect();
     const rects: Record<string, Rect> = {};
     nodeEls.current.forEach((el, id) => {
@@ -121,7 +142,7 @@ export function SkillTree() {
     });
     const mode = box.width >= WIDE ? "wide" : box.width >= GRID ? "grid" : "stack";
     const radius = 10;
-    // Branch rails: tighter in the six-column layout (matches .tree-branch indent).
+    // Branch rails: tighter in the multi-column layout (matches .tree-branch indent).
     const railOffset = mode === "wide" ? 7 : 14;
     const railRadius = mode === "wide" ? 6 : 10;
     const links: Link[] = [];
@@ -167,6 +188,97 @@ export function SkillTree() {
       });
     });
     setGeom({ width: box.width, height: root.scrollHeight, rects, links });
+
+    function clearFractal(root: HTMLDivElement) {
+      delete root.dataset.layout;
+      root.style.removeProperty("height");
+      root
+        .querySelectorAll<HTMLElement>(".tree-core, .tree-category")
+        .forEach((el) => el.removeAttribute("style"));
+    }
+
+    // Fractal tree: a trunk forking by L(n+1) = r·L(n), θ ± α, with each category's
+    // skills growing upward from its tip. Returns false when it does not fit, so the
+    // column layout takes over.
+    function measureFractal(root: HTMLDivElement, width: number) {
+      root.dataset.layout = "fractal";
+      const coreWrap = root.querySelector<HTMLElement>(".tree-core")!;
+      const clusterEls = [...root.querySelectorAll<HTMLElement>(".tree-category")];
+      const coreEl = coreWrap.firstElementChild as HTMLElement;
+      const layout = fractalLayout(
+        { w: coreEl.offsetWidth, h: coreEl.offsetHeight },
+        clusterEls.map((el, i) => {
+          const label = el.firstElementChild as HTMLElement;
+          return {
+            w: el.offsetWidth,
+            h: el.offsetHeight,
+            weight: Math.max(1, countSkills(skillTree.children![i])),
+            anchor: { x: label.offsetWidth / 2, y: label.offsetHeight / 2 },
+          };
+        }),
+        width,
+      );
+      if (!layout) return false;
+      root.style.height = `${layout.height}px`;
+      coreWrap.style.left = `${layout.core.x}px`;
+      coreWrap.style.top = `${layout.core.y}px`;
+      layout.clusters.forEach((box, i) => {
+        clusterEls[i].style.left = `${box.x}px`;
+        clusterEls[i].style.top = `${box.y}px`;
+      });
+
+      const box = root.getBoundingClientRect();
+      const rects: Record<string, Rect> = {};
+      nodeEls.current.forEach((el, id) => {
+        // Offsets, not the bounding box: the power-on animation may be moving nodes.
+        let left = 0;
+        let top = 0;
+        for (let n: HTMLElement | null = el; n && n !== root; n = n.offsetParent as HTMLElement) {
+          left += n.offsetLeft;
+          top += n.offsetTop;
+        }
+        rects[id] = { left, top, width: el.offsetWidth, height: el.offsetHeight };
+      });
+
+      // Limbs leave along their parent's heading, bend toward the tip, and thin out
+      // by the same ratio they shorten by.
+      const links: Link[] = layout.limbs.map((limb, i) => {
+        // Leave along the limb's heading and arrive pointing straight up; upper-tier
+        // limbs then keep climbing through their gap.
+        const end = limb.via ?? limb.to;
+        const reach = Math.hypot(end.x - limb.from.x, end.y - limb.from.y) * 0.45;
+        const ax = limb.from.x + reach * Math.cos(limb.heading);
+        const ay = limb.from.y + reach * Math.sin(limb.heading);
+        const f = (n: number) => n.toFixed(1);
+        const climb = limb.via ? `V${f(limb.to.y)}` : "";
+        return {
+          from: skillTree.id,
+          to: `limb-${i}`,
+          d: `M${f(limb.from.x)} ${f(limb.from.y)}C${f(ax)} ${f(ay)} ${f(end.x)} ${f(end.y + reach)} ${f(end.x)} ${f(end.y)}${climb}`,
+          delay: limb.generation * 280,
+          trunk: true,
+          width: Math.max(1.4, 5 * RATIO ** limb.generation),
+        };
+      });
+      // Inside a cluster, skills grow upward: a rail rises from each parent.
+      entries.forEach((entry, id) => {
+        if (!entry.parentId || entry.depth < 2) return;
+        const p = rects[entry.parentId];
+        const c = rects[id];
+        const rail = p.left + 7;
+        const cy = c.top + c.height / 2;
+        links.push({
+          from: entry.parentId,
+          to: id,
+          d: `M${rail} ${p.top}V${cy + 6}Q${rail} ${cy} ${rail + 6} ${cy}H${c.left}`,
+          delay: Math.max(0, entry.delay - 140),
+          trunk: false,
+        });
+      });
+
+      setGeom({ width: box.width, height: layout.height, rects, links });
+      return true;
+    }
   }, [entries]);
 
   useLayoutEffect(() => {
@@ -195,6 +307,21 @@ export function SkillTree() {
     observer.observe(root);
     return () => observer.disconnect();
   }, []);
+
+  // The terminal's `cat <skill>` arrives as ?skill=<id> or, on this page, as an event.
+  useEffect(() => {
+    const open = (id: string | null) => {
+      if (!id || !entries.has(id)) return;
+      setSelected(id);
+      requestAnimationFrame(() => {
+        nodeEls.current.get(id)?.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    };
+    open(new URLSearchParams(location.search).get("skill"));
+    const onOpen = (event: Event) => open((event as CustomEvent<string>).detail);
+    window.addEventListener(terminalEvents.openSkill, onOpen);
+    return () => window.removeEventListener(terminalEvents.openSkill, onOpen);
+  }, [entries]);
 
   useEffect(() => {
     if (!selected) return;
@@ -241,6 +368,7 @@ export function SkillTree() {
     const classes = [
       "tree-node",
       `node-${kind}`,
+      entry.depth > 2 ? "is-nested" : "",
       node.level ? `level-${node.level}` : "",
       family && inFamily ? "is-related" : "",
       family && !inFamily ? "is-dim" : "",
@@ -269,13 +397,19 @@ export function SkillTree() {
               : node.name
         }
         onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") setHovered(node.id);
+          if (event.pointerType !== "touch") {
+            noteTip(event.currentTarget);
+            setHovered(node.id);
+          }
         }}
         onPointerLeave={() =>
           setHovered((current) => (current === node.id ? null : current))
         }
         onFocus={(event) => {
-          if (event.currentTarget.matches(":focus-visible")) setFocused(node.id);
+          if (event.currentTarget.matches(":focus-visible")) {
+            noteTip(event.currentTarget);
+            setFocused(node.id);
+          }
         }}
         onBlur={() => setFocused((current) => (current === node.id ? null : current))}
         onClick={() => select(node.id)}
@@ -304,7 +438,6 @@ export function SkillTree() {
   }
 
   const tipEntry = active ? entries.get(active) : undefined;
-  const tipRect = active ? geom.rects[active] : undefined;
   const selectedEntry = selected ? entries.get(selected) : undefined;
 
   return (
@@ -366,7 +499,12 @@ export function SkillTree() {
                 className={`tree-link${lit ? " is-lit" : ""}${family && !lit ? " is-dim" : ""}${link.trunk ? " is-trunk" : ""}`}
                 style={{ "--d": `${link.delay}ms` } as CSSProperties}
               >
-                <path className="link-base" d={link.d} pathLength={1} />
+                <path
+                  className="link-base"
+                  d={link.d}
+                  pathLength={1}
+                  style={link.width ? { strokeWidth: link.width } : undefined}
+                />
                 <path className="link-glow" d={link.d} pathLength={1} />
               </g>
             );

@@ -3,9 +3,9 @@ import { portfolio } from "../data/portfolio";
 export function Experience() {
   return (
     <section className="section" id="experience" aria-labelledby="experience-heading">
-      <h2 id="experience-heading" className="section-title">
+      <h1 id="experience-heading" className="section-title">
         Experience
-      </h2>
+      </h1>
       <div className="section-content">
         <ol className="timeline">
           {portfolio.experience.map((job) => (

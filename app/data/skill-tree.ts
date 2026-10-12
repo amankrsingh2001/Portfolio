@@ -70,6 +70,22 @@ export const skillTree: SkillNode = {
           ],
         },
         {
+          id: "cpp",
+          name: "C++",
+          description: "Systems-level programming and problem solving.",
+          level: "proficient",
+          related: ["oop", "javascript"],
+          children: [
+            {
+              id: "oop",
+              name: "Class-based OOP",
+              description: "Classes, inheritance, polymorphism and encapsulation.",
+              level: "proficient",
+              related: ["cpp", "typescript"],
+            },
+          ],
+        },
+        {
           id: "sql",
           name: "SQL",
           description: "Relational queries and schema design.",
@@ -349,5 +365,98 @@ export const skillTree: SkillNode = {
         },
       ],
     },
+    {
+      id: "ai-agents",
+      name: "AI Agents",
+      description: "Coding agents and agentic workflows in daily use.",
+      children: [
+        {
+          id: "claude-code",
+          name: "Claude Code",
+          description: "Agentic coding from the terminal and IDE.",
+          level: "advanced",
+          related: ["mcp", "subagents", "codex"],
+          children: [
+            {
+              id: "mcp",
+              name: "MCP servers",
+              description: "Connecting agents to tools, data and services.",
+              level: "advanced",
+              related: ["claude-code", "tool-calling", "node"],
+            },
+            {
+              id: "subagents",
+              name: "Subagents & skills",
+              description: "Parallel agents and reusable workflows.",
+              level: "advanced",
+              related: ["claude-code"],
+            },
+          ],
+        },
+        {
+          id: "codex",
+          name: "OpenAI Codex",
+          description: "Cloud and CLI coding agent for parallel tasks.",
+          level: "advanced",
+          related: ["claude-code", "devin"],
+        },
+        {
+          id: "devin",
+          name: "Devin",
+          description: "Autonomous engineer for end-to-end tickets.",
+          level: "advanced",
+          related: ["codex"],
+        },
+        {
+          id: "gemini",
+          name: "Gemini CLI",
+          description: "Large-context agent for whole-repo work.",
+          level: "advanced",
+          related: ["antigravity"],
+          children: [
+            {
+              id: "antigravity",
+              name: "Antigravity",
+              description: "Agent-first IDE orchestrating multiple agents.",
+              level: "advanced",
+              related: ["gemini"],
+            },
+          ],
+        },
+        {
+          id: "cursor",
+          name: "Cursor & Copilot",
+          description: "AI-native editing and inline completions.",
+          level: "advanced",
+          related: ["claude-code"],
+        },
+        {
+          id: "tool-calling",
+          name: "Tool calling",
+          description: "Building agents with function calling and automated workflows.",
+          level: "advanced",
+          related: ["mcp", "node", "rest"],
+          children: [
+            {
+              id: "prompting",
+              name: "Prompt & context engineering",
+              description: "Instructions and context that keep agents on track.",
+              level: "advanced",
+              related: ["tool-calling"],
+            },
+          ],
+        },
+      ],
+    },
   ],
 };
+
+/** Every skill below the root, with its category and path: for the API and terminal. */
+export function flattenSkills(node: SkillNode = skillTree, path: string[] = []) {
+  const out: { node: SkillNode; path: string[]; category: string }[] = [];
+  for (const child of node.children ?? []) {
+    out.push({ node: child, path, category: path[0] ?? child.name });
+    out.push(...flattenSkills(child, [...path, child.name]));
+  }
+  return out;
+}

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-type Choice = "system" | "light" | "dark";
+export type Choice = "system" | "light" | "dark";
 
 // Keep in sync with the inline script in app/layout.tsx.
 const storageKey = "aman-portfolio-theme";
@@ -78,25 +78,27 @@ const options: { value: Choice; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
+/** Saves and applies a theme; also used by the terminal's `theme` command. */
+export function setTheme(next: Choice) {
+  try {
+    if (next === "system") localStorage.removeItem(storageKey);
+    else localStorage.setItem(storageKey, next);
+  } catch {
+    // The choice still applies for this visit.
+  }
+  const update = () => applyChoice(next);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "startViewTransition" in document) {
+    document.startViewTransition(update);
+  } else {
+    update();
+  }
+  window.dispatchEvent(new Event(changeEvent));
+}
+
 export function ThemeSwitch() {
   const choice = useSyncExternalStore(subscribe, readChoice, () => "system");
-
-  function select(next: Choice) {
-    try {
-      if (next === "system") localStorage.removeItem(storageKey);
-      else localStorage.setItem(storageKey, next);
-    } catch {
-      // The choice still applies for this visit.
-    }
-    const update = () => applyChoice(next);
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reduce && "startViewTransition" in document) {
-      document.startViewTransition(update);
-    } else {
-      update();
-    }
-    window.dispatchEvent(new Event(changeEvent));
-  }
+  const select = setTheme;
 
   return (
     <div className="theme-switch" role="group" aria-label="Color theme">

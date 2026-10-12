@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "../lib/track";
 
 export function CopyEmail({ email }: { email: string }) {
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
@@ -8,6 +9,7 @@ export function CopyEmail({ email }: { email: string }) {
     try {
       await navigator.clipboard.writeText(email);
       setCopied("done");
+      track("copy", { what: "email", via: "button" });
     } catch {
       setCopied("failed");
     }

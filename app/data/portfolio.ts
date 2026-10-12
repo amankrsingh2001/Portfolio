@@ -6,7 +6,18 @@ export const portfolio = {
   specialization: "Node.js & backend engineering",
   location: "Jaipur, India",
   intro:
-    "I build production-ready backends and thoughtful React experiences. From secure APIs to real-time features, I connect the pieces that make a product work.",
+    "Good products feel simple. I build the complicated bits: secure APIs, live updates, and React interfaces that make everything click.",
+  heroIntro: {
+    opening: "Good products feel",
+    emphasis: "simple.",
+    lead: "I build the complicated bits —",
+    closing: "that make everything click.",
+    details: [
+      { label: "secure APIs", flow: ["request", "authenticate", "respond"], note: "A solid foundation." },
+      { label: "live updates", flow: ["event", "WebSocket", "screen"], note: "No refresh required." },
+      { label: "React interfaces", flow: ["state", "component", "experience"], note: "Every interaction considered." },
+    ],
+  },
   approach:
     "Reliable services. Maintainable code. Responsive interfaces. I work across the stack—from API integrations and authentication to frontend workflows, testing, and production debugging.",
   email: "amankrsingh6001@gmail.com",
@@ -170,11 +181,14 @@ export const portfolio = {
   ],
 };
 
-// High-level logical relationships derived from the résumé. No inferred hosting,
+// High-level logical relationships derived from the résumé and user corrections.
+// Parallel delivery from Azure Functions to TIBCO and Blob Storage was supplied
+// by the user. No inferred hosting,
 // infrastructure, or company technologies are assigned to the personal projects.
 export const architectures = [
   {
     id: "classnotion",
+    projectId: "01",
     title: "ClassNotion",
     category: "LEARNING PLATFORM",
     summary:
@@ -220,6 +234,7 @@ export const architectures = [
   },
   {
     id: "trackerpro",
+    projectId: "02",
     title: "Tracker-Pro",
     category: "EXPENSE TRACKING",
     summary:
@@ -257,10 +272,11 @@ export const architectures = [
   },
   {
     id: "azure",
+    projectId: null,
     title: "Voyage data processing",
     category: "BLUETRIS TECHNOLOGIES / CLOUD WORKFLOW",
     summary:
-      "Serverless processing that reduced manual review of XML voyage data.",
+      "XML voyage data is parsed and validated, then sent to TIBCO and Azure Blob Storage in parallel.",
     nodes: [
       {
         label: "Input",
@@ -274,15 +290,24 @@ export const architectures = [
         detail: "Parse & validate",
         icon: "cloud",
       },
+    ],
+    connections: ["Process XML"],
+    integrations: [
       {
-        label: "Storage",
+        source: "Azure Function App",
+        label: "Send data",
+        technology: "TIBCO",
+        detail: "Processed voyage data",
+        icon: "backend",
+      },
+      {
+        source: "Azure Function App",
+        label: "Upload output",
         technology: "Azure Blob Storage",
-        detail: "Processed output",
+        detail: "Processed voyage data",
         icon: "database",
       },
     ],
-    connections: ["Process XML", "Upload output"],
-    integrations: [],
     deployment: "",
   },
 ];

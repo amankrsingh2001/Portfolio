@@ -7,9 +7,9 @@ export function Skills() {
       id="skills"
       aria-labelledby="skills-heading"
     >
-      <h2 id="skills-heading" className="section-title">
+      <h1 id="skills-heading" className="section-title">
         Skill tree
-      </h2>
+      </h1>
       <div className="section-content">
         <SkillTree />
       </div>
